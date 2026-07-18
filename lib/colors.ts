@@ -1,0 +1,16 @@
+export const colors = {
+  bg: "#F4EFE6",
+  card: "#FFFFFF",
+  border: "#E4DCCB",
+  fieldBg: "#FBF9F5",
+  accent: "#DD7A45",
+  accentSoft: "#FBEADF",
+  text: "#2B2420",
+  muted: "#8A8078",
+  success: "#3C8A5C",
+  successBg: "#E6F3EA",
+  danger: "#C24A42",
+  dangerBg: "#FBEAE8",
+  warning: "#B8791E",
+  warningBg: "#FCEFDD",
+};
