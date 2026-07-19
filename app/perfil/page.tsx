@@ -1,7 +1,69 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { colors } from "@/lib/colors";
 
+interface Perfil {
+  id: string;
+  name: string | null;
+  email: string;
+  telefono: string | null;
+  rol: string;
+}
+
 export default function PerfilPage() {
+  const [perfil, setPerfil] = useState<Perfil | null>(null);
+  const [nombre, setNombre] = useState("");
+  const [telefono, setTelefono] = useState("");
+  const [cargando, setCargando] = useState(true);
+  const [guardando, setGuardando] = useState(false);
+  const [mensaje, setMensaje] = useState("");
+
+  useEffect(() => {
+    fetch("/api/perfil")
+      .then((res) => res.json())
+      .then((data) => {
+        setPerfil(data);
+        setNombre(data.name || "");
+        setTelefono(data.telefono || "");
+      })
+      .finally(() => setCargando(false));
+  }, []);
+
+  const handleGuardar = async () => {
+    setGuardando(true);
+    setMensaje("");
+    try {
+      const res = await fetch("/api/perfil", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: nombre, telefono }),
+      });
+      if (!res.ok) throw new Error();
+      setMensaje("Cambios guardados correctamente");
+    } catch {
+      setMensaje("Error al guardar los cambios");
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  if (cargando) {
+    return (
+      <AdminLayout title="Perfil">
+        <p style={{ color: colors.muted }}>Cargando...</p>
+      </AdminLayout>
+    );
+  }
+
+  const iniciales = (perfil?.name || perfil?.email || "?")
+    .split(" ")
+    .map((p) => p[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
   return (
     <AdminLayout title="Perfil">
       <div
@@ -13,13 +75,13 @@ export default function PerfilPage() {
             className="mb-3 flex h-16 w-16 items-center justify-center rounded-full text-lg font-semibold"
             style={{ backgroundColor: colors.accentSoft, color: colors.accent }}
           >
-            JT
+            {iniciales}
           </div>
           <p className="text-base font-semibold" style={{ color: colors.text }}>
-            Julian Thorne
+            {perfil?.name || "Sin nombre"}
           </p>
           <p className="text-xs" style={{ color: colors.muted }}>
-            Administrador
+            {perfil?.rol}
           </p>
         </div>
 
@@ -29,7 +91,8 @@ export default function PerfilPage() {
               Nombre completo
             </label>
             <input
-              defaultValue="Julian Thorne"
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
               className="h-11 w-full rounded-lg px-3 text-sm outline-none"
               style={{ border: `1px solid ${colors.border}`, backgroundColor: colors.fieldBg, color: colors.text }}
             />
@@ -39,8 +102,9 @@ export default function PerfilPage() {
               Correo electrónico
             </label>
             <input
-              defaultValue="julian.thorne@correo.com"
-              className="h-11 w-full rounded-lg px-3 text-sm outline-none"
+              value={perfil?.email || ""}
+              disabled
+              className="h-11 w-full rounded-lg px-3 text-sm outline-none opacity-60"
               style={{ border: `1px solid ${colors.border}`, backgroundColor: colors.fieldBg, color: colors.text }}
             />
           </div>
@@ -49,17 +113,26 @@ export default function PerfilPage() {
               Teléfono
             </label>
             <input
-              defaultValue="+51 987 654 321"
+              value={telefono}
+              onChange={(e) => setTelefono(e.target.value)}
               className="h-11 w-full rounded-lg px-3 text-sm outline-none"
               style={{ border: `1px solid ${colors.border}`, backgroundColor: colors.fieldBg, color: colors.text }}
             />
           </div>
 
+          {mensaje && (
+            <p className="text-xs" style={{ color: mensaje.includes("Error") ? colors.danger : colors.accent }}>
+              {mensaje}
+            </p>
+          )}
+
           <button
-            className="h-11 w-full rounded-lg text-sm font-medium text-white"
+            onClick={handleGuardar}
+            disabled={guardando}
+            className="h-11 w-full rounded-lg text-sm font-medium text-white disabled:opacity-60"
             style={{ backgroundColor: colors.accent }}
           >
-            Guardar cambios
+            {guardando ? "Guardando..." : "Guardar cambios"}
           </button>
         </div>
       </div>
